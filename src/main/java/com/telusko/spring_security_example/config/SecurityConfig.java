@@ -16,7 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 // import org.springframework.security.core.userdetails.UserDetailsService;
 // import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.telusko.spring_security_example.filter.JwtFilter;
 import com.telusko.spring_security_example.service.CustomUserDetailService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,18 +29,20 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final CustomUserDetailService customUserDetailService;
-
+    private final JwtFilter jwtFilter;
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(
-                        request -> request.requestMatchers("register", "login")
+                        request -> request.requestMatchers("/register", "/login")
                                 .permitAll()
                                 .anyRequest().authenticated())
                 // .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
